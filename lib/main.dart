@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:project/viewmodels/authentication/RegisterViewModel.dart';
+import 'package:project/viewmodels/RegisterViewModel.dart';
 import 'package:project/views/authentication/RegisterView.dart';
 
 import 'Services/network_service.dart';

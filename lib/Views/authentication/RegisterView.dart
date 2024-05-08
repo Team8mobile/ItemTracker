@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:project/res/AppColor.dart';
 import 'package:project/res/AppText.dart';
-import 'package:project/views/authentication/login_screen.dart';
 import 'package:project/services/network_service.dart';
 import '../../utils/validators.dart';
-import '../../viewmodels/authentication/RegisterViewModel.dart';
+import 'package:project/ViewModels/RegisterViewModel.dart';
 
 /// A StatefulWidget responsible for displaying the registration form.
 class RegisterPage extends StatefulWidget {
