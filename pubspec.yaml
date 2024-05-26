@@ -68,7 +68,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/img/
+    - assets/img/barcode.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
