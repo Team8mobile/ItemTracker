@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-
-import '../Services/network_service.dart';
+import 'package:barcode_widget/barcode_widget.dart';
 
 class BarcodeViewModel extends ChangeNotifier {
-  final NetworkService _networkService = NetworkService();
-  int _barcodeCount = 1;
+  List<Widget> _generatedBarcodes = [];
+
+  List<Widget> get generatedBarcodes => _generatedBarcodes;
+
+  int _barcodeCount = 0;
 
   int get barcodeCount => _barcodeCount;
 
@@ -13,11 +15,18 @@ class BarcodeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> generateBarcodes() async {
-    // Logic to generate and save barcodes in Firestore
-    List<Map<String, dynamic>> barcodes = List.generate(_barcodeCount, (index) => {'barcode': '0123456789${index.toString().padLeft(3, '0')}'});
-    for (var barcode in barcodes) {
-      await _networkService.sendData('barcodes', barcode);
+  void generateBarcodes() {
+    _generatedBarcodes.clear();
+    for (int i = 0; i < _barcodeCount; i++) {
+      final barcodeWidget = BarcodeWidget(
+        barcode: Barcode.code128(),
+        data: '0123456789${i.toString().padLeft(5, '0')}',
+        width: 200,
+        height: 100,
+        style: TextStyle(fontSize: 20),
+      );
+      _generatedBarcodes.add(barcodeWidget);
     }
+    notifyListeners();
   }
 }
