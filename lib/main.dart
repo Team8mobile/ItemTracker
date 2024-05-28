@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+
 import 'package:project/res/AppColor.dart';
-import 'Views/authentication/ResetPasswordView.dart';
+import 'package:project/Views/authentication/ChangeEmailinAdminViews.dart';
 
 
 
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
       // home: SplashScreen(),
-        '/': (context) => ResetPassword(),
+        '/': (context) => ChangeEmailView(),
       },
       debugShowCheckedModeBanner: false,
     );

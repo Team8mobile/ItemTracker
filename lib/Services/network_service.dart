@@ -1,97 +1,107 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class NetworkService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  /// Fetches data from the specified [collection] and [documentId].
-  ///
-  /// Returns a [Map<String, dynamic>] representing the fetched data.
-  ///
-  /// Throws a [FirebaseException] if the request fails.
-  Future<Map<String, dynamic>> fetchData(String collection,
-      String documentId) async {
+
+  Future<Map<String, dynamic>> fetchData(String collection, String field, String value) async {
     try {
-      final doc = await _firestore.collection(collection).doc(documentId).get();
-      return doc.data() ?? {};
+      final querySnapshot = await _firestore.collection(collection)
+          .where(field, isEqualTo: value)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        print('No document found for $field: $value');
+        return {};
+      }
+
+      final doc = querySnapshot.docs.first;
+      print('Document data: ${doc.data()}');
+      return doc.data()!;
     } catch (e, stackTrace) {
-      throw FirebaseException(plugin: 'Firestore',
-          message: 'Failed to fetch data: $e',
-          stackTrace: stackTrace);
+      throw FirebaseException(
+        plugin: 'Firestore',
+        message: 'Failed to fetch data: $e',
+        stackTrace: stackTrace,
+      );
     }
   }
 
-  /// Sends data to the specified [collection] and [documentId].
-  ///
-  /// Returns a [Map<String, dynamic>] representing the response data.
-  ///
-  /// Throws a [FirebaseException] if the request fails.
-  Future<Map<String, dynamic>> sendData(String collection, String documentId,
-      Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> sendData(String collection, Map<String, dynamic> data) async {
     try {
-      await _firestore.collection(collection).doc(documentId).set(data);
-      return data;
+      DocumentReference documentReference = await _firestore.collection(collection).add(data);
+      return {...data, 'documentId': documentReference.id};
     } catch (e, stackTrace) {
-      throw FirebaseException(plugin: 'Firestore',
-          message: 'Failed to send data: $e',
-          stackTrace: stackTrace);
+      throw FirebaseException(
+        plugin: 'Firestore',
+        message: 'Failed to send data: $e',
+        stackTrace: stackTrace,
+      );
     }
   }
 
-  /// Updates data at the specified [collection] and [documentId].
-  ///
-  /// Returns a [Map<String, dynamic>] representing the response data.
-  ///
-  /// Throws a [FirebaseException] if the request fails.
-  Future<Map<String, dynamic>> updateData(String collection, String documentId,
-      Map<String, dynamic> data) async {
+  Future<void> updateData(String collection, String field, String value, Map<String, dynamic> data) async {
     try {
-      await _firestore.collection(collection).doc(documentId).update(data);
-      return data;
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection(collection)
+          .where(field, isEqualTo: value)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        print('No document found for $field: $value');
+        return;
+      }
+
+      final doc = querySnapshot.docs.first;
+      final documentId = doc.id;
+      await FirebaseFirestore.instance.collection(collection).doc(documentId).update(data);
+      print("Data updated successfully in Firestore");
     } catch (e, stackTrace) {
-      throw FirebaseException(plugin: 'Firestore',
-          message: 'Failed to update data: $e',
-          stackTrace: stackTrace);
+      throw FirebaseException(
+        plugin: 'Firestore',
+        message: 'Failed to update data: $e',
+        stackTrace: stackTrace,
+      );
     }
   }
 
-  /// Deletes data at the specified [collection] and [documentId].
-  ///
-  /// Throws a [FirebaseException] if the request fails.
   Future<void> deleteData(String collection, String documentId) async {
     try {
       await _firestore.collection(collection).doc(documentId).delete();
     } catch (e, stackTrace) {
-      throw FirebaseException(plugin: 'Firestore',
-          message: 'Failed to delete data: $e',
-          stackTrace: stackTrace);
+      throw FirebaseException(
+        plugin: 'Firestore',
+        message: 'Failed to delete data: $e',
+        stackTrace: stackTrace,
+      );
     }
   }
 
-  Future<void> sendPasswordResetEmail(String email) async {
+  Future<List<Map<String, dynamic>>> fetchAll(String collection) async {
     try {
-      await _firebaseAuth.sendPasswordResetEmail(email: email);
-    } on FirebaseAuthException catch (e) {
-      // You could throw a more specific error or handle it differently
-      throw Exception('Failed to send reset email: ${e.message}');
+      final QuerySnapshot snapshot = await _firestore.collection(collection).get();
+      return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    } catch (e, stackTrace) {
+      throw FirebaseException(
+        plugin: 'Firestore',
+        message: 'Failed to fetch data: $e',
+        stackTrace: stackTrace,
+      );
     }
   }
 
-  Future<void> updatePassword(String newPassword) async {
-    User? currentUser = _firebaseAuth.currentUser;
-    if (currentUser != null) {
-      try {
-        await currentUser.updatePassword(newPassword);
-        await currentUser.reload(); // Optional: refresh user information
-      } on FirebaseAuthException catch (e) {
-        throw Exception('Failed to update password: ${e.message}');
-      }
-    } else {
-      throw Exception('No user logged in.');
+  Future<List<DocumentSnapshot>> fetchProductsByCategory(String category) async {
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('products')
+          .where('category', isEqualTo: category)
+          .get();
+      return snapshot.docs;
+    } catch (e) {
+      print('Error fetching products: $e');
+      return [];
     }
   }
 
-  /// Checks if an email exists in the user's collection.
   Future<bool> emailExists(String email) async {
     try {
       var result = await _firestore.collection('Users').where('email', isEqualTo: email).limit(1).get();
@@ -101,4 +111,3 @@ class NetworkService {
     }
   }
 }
-
