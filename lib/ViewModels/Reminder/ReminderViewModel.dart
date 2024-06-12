@@ -49,7 +49,7 @@ class RemindersViewModel extends ChangeNotifier {
 
   Future<void> checkAndAddReminder(String productId) async {
     try {
-      Map<String, dynamic>? productData = await _networkService.fetchData('products', 'productId', productId);
+      Map<String, dynamic>? productData = await _networkService.fetchData('products', 'id', productId);
       if (productData == null) {
         print('No document found for id: $productId');
         return;
@@ -60,19 +60,22 @@ class RemindersViewModel extends ChangeNotifier {
 
       // Check if the product is near sold out
       if (currentStock <= 10) {
-        Reminder newReminder = Reminder(
-          id: '',
-          productId: productId,
-          productName: productName,
-          currentStock: currentStock,
-          timestamp: DateTime.now(),
-        );
+        bool reminderExists = _reminders.any((reminder) => reminder.productId == productId && !reminder.acknowledged);
 
-        //await _networkService.sendData('Reminders', newReminder.toMap());
-        await fetchReminders();
+        if (!reminderExists) {
+          Reminder newReminder = Reminder(
+            id: '',
+            productId: productId,
+            productName: productName,
+            currentStock: currentStock,
+            timestamp: DateTime.now(),
+          );
 
+          // Save the reminder to Firestore
+          await _networkService.sendData('Reminders', newReminder.toMap());
 
-
+          await fetchReminders();
+        }
       }
     } catch (e) {
       print('Failed to check and add reminder: $e');
