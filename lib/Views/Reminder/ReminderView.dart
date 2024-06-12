@@ -5,6 +5,7 @@ import '../../ViewModels/Reminder/ReminderViewModel.dart';
 import '../../res/AppColor.dart';
 import '../../res/AppText.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'ReminderDetailScreen.dart';
 
 class RemindersView extends StatelessWidget {
   @override
@@ -47,7 +48,7 @@ class RemindersView extends StatelessWidget {
                     itemCount: viewModel.reminders.length,
                     itemBuilder: (context, index) {
                       final reminder = viewModel.reminders[index];
-                      String message = '${AppLocalizations.of(context)!.productOut} - ${reminder.productName} ${AppLocalizations.of(context)!.nearSoldOut}';
+                      String message = 'This product ${reminder.productName} is nearing the end of the quantity';
                       return Center(
                         child: Container(
                           width: 350,
@@ -64,6 +65,14 @@ class RemindersView extends StatelessWidget {
                                 ),
                               ),
                               onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ReminderDetailScreen(reminder: reminder),
+                                  ),
+                                );
+                              },
+                              onLongPress: () {
                                 _showReminderDialog(context, reminder, viewModel);
                               },
                             ),
@@ -85,7 +94,7 @@ class RemindersView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${AppLocalizations.of(context)!.productOut} - ${reminder.productName} ${AppLocalizations.of(context)!.nearSoldOut}'),
+        title: Text('This product ${reminder.productName} is nearing the end of the quantity'),
         content: Text('Do you want to acknowledge this reminder?'),
         actions: [
           TextButton(
